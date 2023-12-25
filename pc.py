@@ -133,7 +133,7 @@ class Dense(Module):
         if self._eo is None:
             raise ('must call backward first')
         self._theta += lr * \
-            jnp.einsum('bo,bi->io', self._eo, jax.vmap(self._f)(self._xi))
+            jnp.einsum('bo,bi->io', self._eo, self._f(self._xi))
         self._xi = None
         self._eo = None
 
