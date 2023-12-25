@@ -19,7 +19,7 @@ def accuracy(params, batch):
 
 
 if __name__ == "__main__":
-    inference_lr = 0.5
+    inference_lr = 0.3
     inference_T = 10
     theta_lr = 0.1
     num_epochs = 50

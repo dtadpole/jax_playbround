@@ -69,14 +69,12 @@ class Dense(Module):
             * math.sqrt(1.0/self._input)
 
     def predict(self, x):
-        return jnp.einsum('io,bi->bo', self._theta,
-                          jax.vmap(self._f)(x))
+        return jnp.einsum('io,bi->bo', self._theta, self._f(x))
 
     def forward(self, xi):
         if self._xi is None:
             self._xi = xi
-        self._mu = jnp.einsum('io,bi->bo', self._theta,
-                              jax.vmap(self._f)(self._xi))
+        self._mu = jnp.einsum('io,bi->bo', self._theta, self._f(self._xi))
         return self._mu
 
     def backward(self, xo, lr):
@@ -90,11 +88,13 @@ class Dense(Module):
         # calculate self._xi
         if self._prev is not None:
             if self._prev._eo is None:
+                # print('there!')
                 self._xi += lr * \
                     jax.vmap(jax.vmap(self._df))(self._xi) * \
                     jnp.einsum('io,bo->bi', self._theta, self._eo)
             else:
-                self._xi += lr * (-self._prev._eo + jax.vmap(jax.vmap(self._df))(self._xi) *
+                # print('here!')
+                self._xi -= lr * (self._prev._eo - jax.vmap(jax.vmap(self._df))(self._xi) *
                                   jnp.einsum('io,bo->bi', self._theta, self._eo))
         return self._xi
 
@@ -103,7 +103,7 @@ class Dense(Module):
             raise ('must call forward first')
         if self._eo is None:
             raise ('must call backward first')
-        self._theta -= lr * \
+        self._theta += lr * \
             jnp.einsum('bo,bi->io', self._eo, jax.vmap(self._f)(self._xi))
         self._xi = None
         self._eo = None
