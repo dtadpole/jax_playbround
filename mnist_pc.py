@@ -11,7 +11,7 @@ import jax.numpy as jnp
 import datasets
 
 
-def accuracy(params, batch):
+def accuracy(net, batch):
     inputs, targets = batch
     target_class = jnp.argmax(targets, axis=1)
     predicted_class = jnp.argmax(net.predict(inputs), axis=1)
@@ -19,11 +19,8 @@ def accuracy(params, batch):
 
 
 if __name__ == "__main__":
-    inference_lr = 0.3
-    inference_T = 10
-    theta_lr = 0.1
     num_epochs = 50
-    batch_size = 1024
+    batch_size = 8192
 
     train_images, train_labels, test_images, test_labels = datasets.mnist()
     num_train = train_images.shape[0]
@@ -42,7 +39,8 @@ if __name__ == "__main__":
 
     net = Network(Sequential([
         Dense(784, 1024, jax.nn.tanh),
-        Dense(1024, 10, jax.nn.tanh),
+        Dense(1024, 256, jax.nn.tanh),
+        Dense(256, 10, jax.nn.tanh),
     ]))
 
     train_acc = accuracy(net, (train_images, train_labels))
@@ -55,8 +53,8 @@ if __name__ == "__main__":
         for _ in range(num_batches):
             xi, xo = next(batches)
             # print(xi.shape, xo.shape)
-            net.inference_learn(xi, xo, lr=inference_lr, T=inference_T)
-            net.theta_update(lr=theta_lr)
+            net.inference_learn(xi, xo)
+            net.theta_update()
         epoch_time = time.time() - start_time
         print(f"Epoch {epoch} in {epoch_time:0.2f} sec")
 

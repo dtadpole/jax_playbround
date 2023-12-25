@@ -12,6 +12,10 @@ class Module(ABC):
         self.name = name
 
     @abstractmethod
+    def energy(self):
+        pass
+
+    @abstractmethod
     def predict(self, x):
         pass
 
@@ -33,15 +37,31 @@ class Network():
     def __init__(self, m: Module):
         self._m = m
 
+    def energy(self):
+        return self._m.energy()
+
     def predict(self, x):
         return self._m.predict(x)
 
-    def inference_learn(self, xi, xo, lr=0.5, T=10):
+    def inference_learn(self, xi, xo, lr=0.1, eplison=1e-3, T=100):
+        start_energy = None
+        prev_energy = None
         for i in range(T):
             self._m.forward(xi)
             self._m.backward(xo, lr)
+            energy = self.energy()
+            if prev_energy is None:
+                start_energy = energy
+                prev_energy = energy
+            else:
+                delta = prev_energy - energy
+                prev_energy = energy
+                if delta / energy < eplison:
+                    print(f'energy: [{start_energy:.3e}, {energy:.3e}]')
+                    return
+        print(f'energy: [{start_energy:.3e}, {prev_energy:.3e}] [iteration ended]')
 
-    def theta_update(self, lr=0.1):
+    def theta_update(self, lr=1e-5):
         self._m.theta_update(lr)
 
 
@@ -67,6 +87,15 @@ class Dense(Module):
         # Xavier Initialization w/ normal distribution (instead of uniform)
         self._theta = jax.random.normal(_key, (self._input, self._output)) \
             * math.sqrt(1.0/self._input)
+
+    def energy(self):
+        if self._prev is None:
+            return 0.0
+        if self._xi is None:
+            raise ('must call forward first')
+        if self._eo is None:
+            raise ('must call backward first')
+        return 0.5 * jnp.sum((self._eo) ** 2) / self._eo.shape[0]
 
     def predict(self, x):
         return jnp.einsum('io,bi->bo', self._theta, self._f(x))
@@ -103,7 +132,7 @@ class Dense(Module):
             raise ('must call forward first')
         if self._eo is None:
             raise ('must call backward first')
-        self._theta -= lr * \
+        self._theta += lr * \
             jnp.einsum('bo,bi->io', self._eo, jax.vmap(self._f)(self._xi))
         self._xi = None
         self._eo = None
@@ -118,6 +147,12 @@ class Sequential(Module):
             if idx != 0:
                 self._layers[idx].set_prev(self._layers[idx-1])
 
+    def energy(self):
+        e = 0
+        for l in self._layers:
+            e += l.energy()
+        return e
+        
     def predict(self, x):
         for l in self._layers:
             x = l.predict(x)
