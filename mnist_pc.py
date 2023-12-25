@@ -45,6 +45,11 @@ if __name__ == "__main__":
         Dense(1024, 10, jax.nn.tanh),
     ]))
 
+    train_acc = accuracy(net, (train_images, train_labels))
+    test_acc = accuracy(net, (test_images, test_labels))
+    print(f"Training set accuracy {train_acc*100:0.2f}%")
+    print(f"Test set accuracy {test_acc*100:0.2f}%")
+
     for epoch in range(num_epochs):
         start_time = time.time()
         for _ in range(num_batches):
