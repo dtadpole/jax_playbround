@@ -19,7 +19,7 @@ def accuracy(net, batch):
 
 
 if __name__ == "__main__":
-    num_epochs = 20
+    num_epochs = 50
     batch_size = 8192
 
     train_images, train_labels, test_images, test_labels = datasets.mnist()
@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     for epoch in range(num_epochs):
         start_time = time.time()
-        for _ in range(num_batches):
+        for t in range(num_batches):
             xi, xo = next(batches)
             # print(xi.shape, xo.shape)
             net.inference_learn(xi, xo)

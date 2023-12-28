@@ -46,7 +46,7 @@ class Network():
     def inference_learn(self, xi, xo, lr=0.1, eplison=1e-3, T=100):
         start_energy = None
         prev_energy = None
-        for i in range(T):
+        for t in range(T):
             self._m.forward(xi)
             self._m.backward(xo, lr)
             energy = self.energy()
@@ -57,7 +57,7 @@ class Network():
                 delta = prev_energy - energy
                 prev_energy = energy
                 if delta / energy < eplison:
-                    print(f'energy: [{start_energy:.3e}, {energy:.3e}]')
+                    print(f'IL energy: [{start_energy:.3e} => {energy:.3e}] ({t})')
                     return
         print(f'energy: [{start_energy:.3e}, {prev_energy:.3e}] [iteration ended]')
 
