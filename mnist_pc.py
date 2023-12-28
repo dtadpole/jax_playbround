@@ -20,7 +20,7 @@ def accuracy(net, batch):
 
 if __name__ == "__main__":
     num_epochs = 50
-    batch_size = 8192
+    batch_size = 4096
 
     train_images, train_labels, test_images, test_labels = datasets.mnist()
     num_train = train_images.shape[0]
@@ -39,8 +39,8 @@ if __name__ == "__main__":
 
     net = Network(Sequential([
         Dense(784, 1024, jax.nn.tanh),
-        Dense(1024, 256, jax.nn.tanh),
-        Dense(256, 10, jax.nn.tanh),
+        # Dense(1024, 256, jax.nn.tanh),
+        Dense(1024, 10, jax.nn.tanh),
     ]))
 
     train_acc = accuracy(net, (train_images, train_labels))
