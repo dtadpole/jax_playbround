@@ -152,7 +152,7 @@ class Sequential(Module):
         for l in self._layers:
             e += l.energy()
         return e
-        
+
     def predict(self, x):
         for l in self._layers:
             x = l.predict(x)
