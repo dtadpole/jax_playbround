@@ -62,7 +62,9 @@ class Network():
         print(f'energy: [{start_energy:.3e}, {prev_energy:.3e}] [iteration ended]')
 
     def theta_update(self, lr=1e-5):
-        self._m.theta_update(lr)
+        start_energy = self.energy()
+        new_energy = self._m.theta_update(lr)
+        print(f'Theta energy: [{start_energy:.3e} => {new_energy:.3e}]')
 
 
 class Dense(Module):
@@ -77,6 +79,7 @@ class Dense(Module):
         self._initialize_params()
         self._xi = None
         self._mu = None
+        self._xo = None
         self._eo = None
         self._prev = prev
 
@@ -109,6 +112,7 @@ class Dense(Module):
     def backward(self, xo, lr):
         if self._xi is None or self._mu is None:
             raise ('must call forward first')
+        self._xo = xo
         self._eo = xo - self._mu
         self._mu = None
         # check for prev layer
@@ -134,8 +138,13 @@ class Dense(Module):
             raise ('must call backward first')
         self._theta += lr * \
             jnp.einsum('bo,bi->io', self._eo, self._f(self._xi))
+        self._mu = jnp.einsum('io,bi->bo', self._theta, self._f(self._xi))
+        self._eo = self._xo - self._mu
+        e = self.energy()
         self._xi = None
+        self._xo = None
         self._eo = None
+        return e
 
 
 class Sequential(Module):
@@ -169,5 +178,7 @@ class Sequential(Module):
         return x
 
     def theta_update(self, lr):
+        e = 0
         for l in reversed(self._layers):
-            l.theta_update(lr)
+            e += l.theta_update(lr)
+        return e

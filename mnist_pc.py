@@ -21,6 +21,7 @@ def accuracy(net, batch):
 if __name__ == "__main__":
     num_epochs = 50
     batch_size = 4096
+    # batch_size = 60000
 
     train_images, train_labels, test_images, test_labels = datasets.mnist()
     num_train = train_images.shape[0]
